@@ -1,25 +1,39 @@
 pipeline {
     agent any
-    parameters {
-        string(name: 'PORT', defaultValue: '5000', description: 'Forwarded Port')
-    }
+
     stages {
-        stage('Pull') {
+        stage('Checkout') {
             steps {
                 git 'https://github.com/CreeperCodeDev/adyeshach.git'
             }
         }
-        stage('Docker Run') {
+
+        stage('Build') {
             steps {
-                sh '''docker rm -f flask-app
-                docker build -t simple-flask-app:latest .
-                docker run --name flask-app -d -p $PORT:5000 simple-flask-app'''
+                sh './gradlew clean build'
             }
         }
-        stage('Smoke Test') {
+
+        stage('Test') {
             steps {
-                sh 'curl localhost:$PORT'
+                sh './gradlew test'
             }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application...'
+                // Add deployment steps here
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and tests successful!'
+        }
+        failure {
+            echo 'Build failed!'
         }
     }
 }
